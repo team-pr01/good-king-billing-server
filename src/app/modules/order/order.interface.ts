@@ -11,10 +11,11 @@ export type TOrderProduct = {
 export type TOrder = {
   shopId: mongoose.Schema.Types.ObjectId;
   shopName: string;
-  totalAmount: number;
-  paidAmount: number;
-  pendingAmount: number;
+  totalAmount?: number;
+  paidAmount?: number;
+  pendingAmount?: number;
   products: TOrderProduct[];
+  paymentMethod?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };

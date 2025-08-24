@@ -47,18 +47,23 @@ const OrderSchema = new Schema<TOrder>(
     },
     totalAmount: {
       type: Number,
-      required: true,
+      required: false,
       min: 0,
     },
     paidAmount: {
       type: Number,
-      required: true,
+      required: false,
       min: 0,
     },
     pendingAmount: {
       type: Number,
-      required: true,
+      required: false,
       min: 0,
+    },
+    paymentMethod: {
+      type: String,
+      required: false,
+      trim: true,
     },
     products: {
       type: [OrderProductSchema],
