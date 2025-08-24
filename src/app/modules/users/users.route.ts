@@ -7,34 +7,10 @@ import { UserRole } from "../auth/auth.constannts";
 
 const router = express.Router();
 
-router.get("/", auth(UserRole.admin), UserControllers.getAllUser);
 router.get(
   "/me",
-  auth(
-    UserRole.user,
-    UserRole.admin,
-    UserRole.moderator,
-    UserRole["super-admin"]
-  ),
+  auth(UserRole.admin, UserRole.salesman, UserRole.supplier, UserRole.client),
   UserControllers.getMe
-);
-router.get("/:userId", UserControllers.getSingleUserById);
-// UserControllers.updateProfile);
-
-router.delete(
-  "/remove-user/:userId",
-  auth("admin"),
-  UserControllers.deleteUser
-);
-router.put(
-  "/make-admin/:userId",
-  auth("admin"),
-  UserControllers.changeUserRoleToAdmin
-);
-router.put(
-  "/make-user/:userId",
-  auth("admin"),
-  UserControllers.changeUserRoleToUser
 );
 
 export const userRoutes = router;
