@@ -10,7 +10,11 @@ const addProduct = async (payload: TProduct) => {
   return result;
 };
 
-const getAllProducts = async (keyword?: string, hsnCode?: string) => {
+const getAllProducts = async (
+  keyword?: string,
+  hsnCode?: string,
+  status?: string
+) => {
   const query: any = {};
 
   if (keyword) {
@@ -20,13 +24,18 @@ const getAllProducts = async (keyword?: string, hsnCode?: string) => {
     ];
   }
 
-  if (hsnCode && hsnCode !== "all") {
+  if (hsnCode) {
     query.hsnCode = { $regex: hsnCode, $options: "i" };
+  }
+
+  if (status) {
+    query.status = status;
   }
 
   const result = await Product.find(query);
   return result;
 };
+
 
 // Get single product by ID
 const getSingleProductById = async (id: string) => {

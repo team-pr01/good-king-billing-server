@@ -4,6 +4,7 @@ export type TProduct = {
   price: number;
   taxValue: number;
   hsnCode: string;
+  status? : string;
   createdAt?: Date;
   updatedAt?: Date;
 };

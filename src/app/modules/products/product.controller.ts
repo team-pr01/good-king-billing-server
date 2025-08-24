@@ -16,10 +16,11 @@ const addProduct = catchAsync(async (req, res) => {
 
 // Get all products
 const getAllProducts = catchAsync(async (req, res) => {
-  const { keyword, hsnCode } = req.query;
+  const { keyword, hsnCode, status } = req.query;
   const result = await ProductServices.getAllProducts(
     keyword as string,
-    hsnCode as string
+    hsnCode as string,
+    status as string
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
