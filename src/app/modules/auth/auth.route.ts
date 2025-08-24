@@ -2,6 +2,8 @@ import express from "express";
 import validateRequest from "../../middlewares/validateRequest";
 import { AuthValidations } from "./auth.validation";
 import { AuthControllers } from "./auth.controller";
+import auth from "../../middlewares/auth";
+import { UserRole } from "./auth.constannts";
 const router = express.Router();
 
 router.post("/signup", AuthControllers.signup);
@@ -24,5 +26,12 @@ router.post(
   validateRequest(AuthValidations.resetPasswordValidationSchema),
   AuthControllers.resetPassword
 );
+
+router.post(
+  "/change-password",
+  auth(UserRole.admin, UserRole.client, UserRole.supplier, UserRole.salesman),
+  AuthControllers.changePassword
+);
+
 
 export const AuthRoute = router;

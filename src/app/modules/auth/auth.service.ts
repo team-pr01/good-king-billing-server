@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from "http-status";
 import { TLoginAuth, TUser } from "./auth.interface";
-import AppError from "../../errors/AppError";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 import { createToekn } from "./auth.utils";
 import { User } from "./auth.model";
 import { sendEmail } from "../../utils/sendEmail";
 import bcrypt from "bcrypt";
+import AppError from "./../../errors/AppError";
 
-// Create user
+// Signup
 const signup = async (payload: Partial<TUser>) => {
   // Checking if user already exists
   const isUserExists = await User.findOne({ email: payload.email });
@@ -179,10 +179,45 @@ const resetPassword = async (
   );
 };
 
+const changePassword = async (
+  userId: string,
+  payload: { currentPassword: string; newPassword: string }
+) => {
+  const user = await User.findById(userId).select("+password");
+
+  // Checking if the user exists
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+  }
+
+  // Check if the current password is correct
+  const isPasswordMatched = await bcrypt.compare(
+    payload.currentPassword,
+    user.password
+  );
+  if (!isPasswordMatched) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      "Current password is incorrect!"
+    );
+  }
+
+  // Hash the new password
+  const newHashedPassword = await bcrypt.hash(
+    payload.newPassword,
+    Number(config.bcrypt_salt_round)
+  );
+  // Update password and set passwordChangedAt
+  await User.findByIdAndUpdate(userId, {
+    password: newHashedPassword,
+  });
+};
+
 export const AuthServices = {
   signup,
   loginUser,
   refreshToken,
   forgetPassword,
   resetPassword,
+  changePassword,
 };
