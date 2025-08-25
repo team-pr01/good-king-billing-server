@@ -16,6 +16,7 @@ export type TOrder = {
   pendingAmount?: number;
   products: TOrderProduct[];
   paymentMethod?: string;
+  status ?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };

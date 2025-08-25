@@ -22,8 +22,19 @@ const addArea = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 // Get all Areas
-const getAllAreas = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield area_model_1.default.find();
+const getAllAreas = (keyword) => __awaiter(void 0, void 0, void 0, function* () {
+    let query = {};
+    if (keyword) {
+        query = {
+            $or: [
+                { state: { $regex: keyword, $options: "i" } },
+                { district: { $regex: keyword, $options: "i" } },
+                { city: { $regex: keyword, $options: "i" } },
+                { area: { $regex: keyword, $options: "i" } },
+            ],
+        };
+    }
+    const result = yield area_model_1.default.find(query);
     return result;
 });
 // Get single Area by ID

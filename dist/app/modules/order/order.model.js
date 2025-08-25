@@ -83,6 +83,12 @@ const OrderSchema = new mongoose_1.Schema({
         required: false,
         trim: true,
     },
+    status: {
+        type: String,
+        required: false,
+        default: "pending",
+        trim: true,
+    },
     products: {
         type: [OrderProductSchema],
         required: true,

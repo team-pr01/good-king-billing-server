@@ -16,7 +16,8 @@ const addArea = catchAsync(async (req, res) => {
 
 // Get all Areas
 const getAllAreas = catchAsync(async (req, res) => {
-  const result = await AreaServices.getAllAreas();
+  const { keyword } = req.query;
+  const result = await AreaServices.getAllAreas(keyword as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

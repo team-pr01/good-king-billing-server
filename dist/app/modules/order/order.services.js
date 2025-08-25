@@ -23,7 +23,7 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
     return result;
 });
 // Get all orders with optional filters (keyword can search shopName)
-const getAllOrders = (keyword, shopId) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllOrders = (keyword, shopId, status) => __awaiter(void 0, void 0, void 0, function* () {
     const query = {};
     if (keyword) {
         query.shopName = { $regex: keyword, $options: "i" };
@@ -31,16 +31,25 @@ const getAllOrders = (keyword, shopId) => __awaiter(void 0, void 0, void 0, func
     if (shopId) {
         query.shopId = shopId;
     }
+    if (status) {
+        query.status = status;
+    }
     const result = yield order_model_1.default.find(query);
     return result;
 });
 // Get single order by ID
 const getSingleOrderById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield order_model_1.default.findById(id).populate("products.productId").populate("shopId");
+    const result = yield order_model_1.default.findById(id)
+        .populate("products.productId")
+        .populate("shopId");
     if (!result) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, "Order not found");
     }
     return result;
+});
+const getOrdersByShopId = (shopId) => __awaiter(void 0, void 0, void 0, function* () {
+    const orders = yield order_model_1.default.find({ shopId });
+    return orders;
 });
 // Update order
 const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
@@ -55,7 +64,7 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
         updatedProducts = [...existing.products, ...payload.products];
         // Optional: merge by productId to avoid duplicates
         const map = new Map();
-        updatedProducts.forEach(p => map.set(p.productId.toString(), p));
+        updatedProducts.forEach((p) => map.set(p.productId.toString(), p));
         updatedProducts = Array.from(map.values());
     }
     // Merge payload without replacing products entirely
@@ -63,7 +72,9 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
     const result = yield order_model_1.default.findByIdAndUpdate(id, updatePayload, {
         new: true,
         runValidators: true,
-    }).populate("products.productId").populate("shopId");
+    })
+        .populate("products.productId")
+        .populate("shopId");
     return result;
 });
 // Delete order
@@ -80,4 +91,5 @@ exports.OrderServices = {
     getSingleOrderById,
     updateOrder,
     deleteOrder,
+    getOrdersByShopId,
 };

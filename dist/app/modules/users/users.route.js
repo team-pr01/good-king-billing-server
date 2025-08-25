@@ -12,4 +12,6 @@ const auth_constannts_1 = require("../auth/auth.constannts");
 // import { upload } from '../../utils/sendImageToCloudinary';
 const router = express_1.default.Router();
 router.get("/me", (0, auth_1.default)(auth_constannts_1.UserRole.admin, auth_constannts_1.UserRole.salesman, auth_constannts_1.UserRole.supplier, auth_constannts_1.UserRole.client), users_controller_1.UserControllers.getMe);
+router.get("/", (0, auth_1.default)(auth_constannts_1.UserRole.admin), users_controller_1.UserControllers.getAllUsers);
+router.delete("/:id", (0, auth_1.default)(auth_constannts_1.UserRole.admin), users_controller_1.UserControllers.deleteUser);
 exports.userRoutes = router;

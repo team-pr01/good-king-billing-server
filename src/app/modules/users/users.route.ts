@@ -13,4 +13,16 @@ router.get(
   UserControllers.getMe
 );
 
+router.get(
+  "/",
+  auth(UserRole.admin),
+  UserControllers.getAllUsers
+);
+
+router.delete(
+  "/:id",
+  auth(UserRole.admin),
+  UserControllers.deleteUser
+);
+
 export const userRoutes = router;

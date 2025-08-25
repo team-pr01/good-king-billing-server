@@ -16,10 +16,11 @@ const createOrder = catchAsync(async (req, res) => {
 
 // Get all orders with optional search
 const getAllOrders = catchAsync(async (req, res) => {
-  const { keyword, shopId } = req.query;
+  const { keyword, shopId, status } = req.query;
   const result = await OrderServices.getAllOrders(
     keyword as string,
-    shopId as string
+    shopId as string,
+    status as string
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -36,6 +37,20 @@ const getSingleOrder = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Order retrieved successfully",
+    data: result,
+  });
+});
+
+// Get orders by shopId
+const getOrdersByShopId = catchAsync(async (req, res) => {
+  const { shopId } = req.params;
+
+  const result = await OrderServices.getOrdersByShopId(shopId as string);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Orders retrieved successfully by shopId",
     data: result,
   });
 });
@@ -68,4 +83,5 @@ export const OrderControllers = {
   getSingleOrder,
   updateOrder,
   deleteOrder,
+  getOrdersByShopId,
 };

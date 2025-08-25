@@ -15,6 +15,8 @@ router.post("/create", (0, auth_1.default)(auth_constannts_1.UserRole.admin, aut
 router.get("/", order_controller_1.OrderControllers.getAllOrders);
 // Get single order
 router.get("/:id", order_controller_1.OrderControllers.getSingleOrder);
+// Get all orders for shop
+router.get("/shop/:shopId", order_controller_1.OrderControllers.getOrdersByShopId);
 // Update order
 router.put("/:id", (0, auth_1.default)(auth_constannts_1.UserRole.admin, auth_constannts_1.UserRole.salesman, auth_constannts_1.UserRole.supplier), order_controller_1.OrderControllers.updateOrder);
 // Delete order

@@ -11,7 +11,11 @@ const createOrder = async (payload: TOrder) => {
 };
 
 // Get all orders with optional filters (keyword can search shopName)
-const getAllOrders = async (keyword?: string, shopId?: string) => {
+const getAllOrders = async (
+  keyword?: string,
+  shopId?: string,
+  status?: string
+) => {
   const query: any = {};
 
   if (keyword) {
@@ -22,17 +26,28 @@ const getAllOrders = async (keyword?: string, shopId?: string) => {
     query.shopId = shopId;
   }
 
+  if (status) {
+    query.status = status;
+  }
+
   const result = await Order.find(query);
   return result;
 };
 
 // Get single order by ID
 const getSingleOrderById = async (id: string) => {
-  const result = await Order.findById(id).populate("products.productId").populate("shopId");
+  const result = await Order.findById(id)
+    .populate("products.productId")
+    .populate("shopId");
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, "Order not found");
   }
   return result;
+};
+
+const getOrdersByShopId = async (shopId: string) => {
+  const orders = await Order.find({ shopId });
+  return orders;
 };
 
 // Update order
@@ -50,8 +65,8 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
     updatedProducts = [...existing.products, ...payload.products];
 
     // Optional: merge by productId to avoid duplicates
-    const map = new Map<string, typeof updatedProducts[0]>();
-    updatedProducts.forEach(p => map.set(p.productId.toString(), p));
+    const map = new Map<string, (typeof updatedProducts)[0]>();
+    updatedProducts.forEach((p) => map.set(p.productId.toString(), p));
     updatedProducts = Array.from(map.values());
   }
 
@@ -64,11 +79,12 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
   const result = await Order.findByIdAndUpdate(id, updatePayload, {
     new: true,
     runValidators: true,
-  }).populate("products.productId").populate("shopId");
+  })
+    .populate("products.productId")
+    .populate("shopId");
 
   return result;
 };
-
 
 // Delete order
 const deleteOrder = async (id: string) => {
@@ -85,4 +101,5 @@ export const OrderServices = {
   getSingleOrderById,
   updateOrder,
   deleteOrder,
+  getOrdersByShopId,
 };

@@ -15,6 +15,32 @@ const getMe = catchAsync(async (req, res) => {
   });
 });
 
+const getAllUsers = catchAsync(async (req, res) => {
+  const { keyword, role } = req.query;
+  const result = await UserServices.getAllUsers(
+    keyword as string,
+    role as string,
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Users retrieved successfully",
+    data: result,
+  });
+});
+
+const deleteUser = catchAsync(async (req, res) => {
+  const result = await UserServices.deleteUser(req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User deleted successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getMe,
+  getAllUsers,
+  deleteUser
 };

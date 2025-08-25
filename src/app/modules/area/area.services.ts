@@ -10,8 +10,20 @@ const addArea = async (payload: TArea) => {
 };
 
 // Get all Areas
-const getAllAreas = async () => {
-  const result = await Area.find();
+const getAllAreas = async (keyword:string) => {
+  let query = {};
+
+  if (keyword) {
+    query = {
+      $or: [
+        { state: { $regex: keyword, $options: "i" } },
+        { district: { $regex: keyword, $options: "i" } },
+        { city: { $regex: keyword, $options: "i" } },
+        { area: { $regex: keyword, $options: "i" } },
+      ],
+    };
+  }
+  const result = await Area.find(query);
   return result;
 };
 

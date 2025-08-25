@@ -29,8 +29,8 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 // Get all orders with optional search
 const getAllOrders = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { keyword, shopId } = req.query;
-    const result = yield order_services_1.OrderServices.getAllOrders(keyword, shopId);
+    const { keyword, shopId, status } = req.query;
+    const result = yield order_services_1.OrderServices.getAllOrders(keyword, shopId, status);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -45,6 +45,17 @@ const getSingleOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
         statusCode: http_status_1.default.OK,
         success: true,
         message: "Order retrieved successfully",
+        data: result,
+    });
+}));
+// Get orders by shopId
+const getOrdersByShopId = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { shopId } = req.params;
+    const result = yield order_services_1.OrderServices.getOrdersByShopId(shopId);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: "Orders retrieved successfully by shopId",
         data: result,
     });
 }));
@@ -74,4 +85,5 @@ exports.OrderControllers = {
     getSingleOrder,
     updateOrder,
     deleteOrder,
+    getOrdersByShopId,
 };

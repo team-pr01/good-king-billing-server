@@ -65,6 +65,12 @@ const OrderSchema = new Schema<TOrder>(
       required: false,
       trim: true,
     },
+    status: {
+      type: String,
+      required: false,
+      default: "pending",
+      trim: true,
+    },
     products: {
       type: [OrderProductSchema],
       required: true,

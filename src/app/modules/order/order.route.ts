@@ -14,6 +14,9 @@ router.get("/", OrderControllers.getAllOrders);
 // Get single order
 router.get("/:id", OrderControllers.getSingleOrder);
 
+// Get all orders for shop
+router.get("/shop/:shopId", OrderControllers.getOrdersByShopId);
+
 // Update order
 router.put("/:id", auth(UserRole.admin, UserRole.salesman, UserRole.supplier), OrderControllers.updateOrder);
 
