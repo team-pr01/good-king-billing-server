@@ -66,6 +66,20 @@ const updateOrder = catchAsync(async (req, res) => {
   });
 });
 
+const updateOrderStatus = catchAsync(async (req, res) => {
+  const { status } = req.body;
+  console.log(status);
+  const result = await OrderServices.updateOrderStatus(req.params.id, status);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: `Order status updated to ${status} successfully`,
+    data: result,
+  });
+});
+
+
 // Delete order
 const deleteOrder = catchAsync(async (req, res) => {
   const result = await OrderServices.deleteOrder(req.params.id);
@@ -81,6 +95,7 @@ export const OrderControllers = {
   createOrder,
   getAllOrders,
   getSingleOrder,
+  updateOrderStatus,
   updateOrder,
   deleteOrder,
   getOrdersByShopId,

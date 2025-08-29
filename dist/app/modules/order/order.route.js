@@ -21,4 +21,5 @@ router.get("/shop/:shopId", order_controller_1.OrderControllers.getOrdersByShopI
 router.put("/:id", (0, auth_1.default)(auth_constannts_1.UserRole.admin, auth_constannts_1.UserRole.salesman, auth_constannts_1.UserRole.supplier), order_controller_1.OrderControllers.updateOrder);
 // Delete order
 router.delete("/:id", (0, auth_1.default)(auth_constannts_1.UserRole.admin, auth_constannts_1.UserRole.salesman, auth_constannts_1.UserRole.supplier), order_controller_1.OrderControllers.deleteOrder);
+router.put("/update-status/:id", (0, auth_1.default)(auth_constannts_1.UserRole.admin, auth_constannts_1.UserRole.salesman, auth_constannts_1.UserRole.supplier), order_controller_1.OrderControllers.updateOrderStatus);
 exports.OrderRoutes = router;

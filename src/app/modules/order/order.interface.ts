@@ -14,8 +14,12 @@ export type TOrder = {
   totalAmount?: number;
   paidAmount?: number;
   pendingAmount?: number;
+  previousDue?: number;
+  totalPendingAmount?: number;
   products: TOrderProduct[];
   paymentMethod?: string;
+  previousOrderId?: string;
+  coveredDueAmount?: number;
   status ?: string;
   createdAt?: Date;
   updatedAt?: Date;

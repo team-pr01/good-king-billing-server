@@ -18,9 +18,66 @@ const http_status_1 = __importDefault(require("http-status"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const order_model_1 = __importDefault(require("./order.model"));
 // Create order
+// Create order
 const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield order_model_1.default.create(payload);
-    return result;
+    // Find last order for this shop
+    const lastOrder = yield order_model_1.default.findOne({ shopId: payload.shopId }).sort({ createdAt: -1 });
+    let previousDue = 0;
+    let previousOrderId = null;
+    if (lastOrder && lastOrder.totalPendingAmount > 0) {
+        previousDue = lastOrder.totalPendingAmount;
+        previousOrderId = lastOrder._id.toString(); // track where due came from
+    }
+    const pendingAmount = payload.totalAmount - payload.paidAmount;
+    const totalPendingAmount = previousDue + pendingAmount;
+    // Create new order
+    const newOrder = yield order_model_1.default.create(Object.assign(Object.assign({}, payload), { previousDue,
+        pendingAmount,
+        totalPendingAmount,
+        previousOrderId }));
+    // Reset last order's totalPendingAmount = 0 (so only new order shows balance)
+    if (lastOrder) {
+        lastOrder.totalPendingAmount = 0;
+        yield lastOrder.save();
+    }
+    return newOrder;
+});
+// Update order
+const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    const existing = yield order_model_1.default.findById(id);
+    if (!existing)
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, "Order not found");
+    const lastOrder = yield order_model_1.default.findOne({ shopId: existing.shopId }).sort({ createdAt: -1 });
+    if (!lastOrder || lastOrder._id.toString() !== existing._id.toString()) {
+        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "Only latest order can be updated");
+    }
+    // Calculate total payment so far including new payment
+    const newPaidAmount = (_a = payload.paidAmount) !== null && _a !== void 0 ? _a : 0;
+    const alreadyPaid = (_b = existing.paidAmount) !== null && _b !== void 0 ? _b : 0;
+    const totalPaid = alreadyPaid + newPaidAmount;
+    const totalPending = (existing.previousDue || 0) + existing.totalAmount;
+    const remaining = Math.max(0, totalPending - totalPaid);
+    const pendingAmount = Math.min(existing.totalAmount, remaining);
+    const previousDue = Math.max(0, remaining - pendingAmount);
+    // ✅ Always clear all older orders' pendingAmounts
+    yield order_model_1.default.updateMany({ shopId: existing.shopId, createdAt: { $lt: existing.createdAt } }, { $set: { pendingAmount: 0 } });
+    // ✅ Track only the last order id if dues are still carried
+    let previousOrderId = (_c = existing.previousOrderId) !== null && _c !== void 0 ? _c : null;
+    if (previousDue > 0 && !previousOrderId) {
+        const prevOrder = yield order_model_1.default.findOne({
+            shopId: existing.shopId,
+            createdAt: { $lt: existing.createdAt },
+        }).sort({ createdAt: -1 });
+        if (prevOrder) {
+            previousOrderId = prevOrder._id.toString();
+        }
+    }
+    // ✅ Update current order
+    const updatedOrder = yield order_model_1.default.findByIdAndUpdate(id, Object.assign(Object.assign({}, payload), { paidAmount: totalPaid, // accumulate payments
+        pendingAmount,
+        previousDue, totalPendingAmount: previousDue + pendingAmount, previousOrderId }), { new: true, runValidators: true });
+    return updatedOrder;
 });
 // Get all orders with optional filters (keyword can search shopName)
 const getAllOrders = (keyword, shopId, status) => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,30 +108,13 @@ const getOrdersByShopId = (shopId) => __awaiter(void 0, void 0, void 0, function
     const orders = yield order_model_1.default.find({ shopId });
     return orders;
 });
-// Update order
-const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const existing = yield order_model_1.default.findById(id);
-    if (!existing) {
+const updateOrderStatus = (id, status) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield order_model_1.default.findByIdAndUpdate(id, { status }, // assumes your Order model has a `status` field
+    { new: true } // return the updated document
+    );
+    if (!result) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, "Order not found");
     }
-    // Merge products if new products are provided
-    let updatedProducts = existing.products;
-    if (payload.products && payload.products.length > 0) {
-        // Option 1: append new products
-        updatedProducts = [...existing.products, ...payload.products];
-        // Optional: merge by productId to avoid duplicates
-        const map = new Map();
-        updatedProducts.forEach((p) => map.set(p.productId.toString(), p));
-        updatedProducts = Array.from(map.values());
-    }
-    // Merge payload without replacing products entirely
-    const updatePayload = Object.assign(Object.assign({}, payload), { products: updatedProducts });
-    const result = yield order_model_1.default.findByIdAndUpdate(id, updatePayload, {
-        new: true,
-        runValidators: true,
-    })
-        .populate("products.productId")
-        .populate("shopId");
     return result;
 });
 // Delete order
@@ -90,6 +130,7 @@ exports.OrderServices = {
     getAllOrders,
     getSingleOrderById,
     updateOrder,
+    updateOrderStatus,
     deleteOrder,
     getOrdersByShopId,
 };

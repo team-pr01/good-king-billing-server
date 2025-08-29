@@ -60,10 +60,30 @@ const OrderSchema = new Schema<TOrder>(
       required: false,
       min: 0,
     },
+    previousDue: {
+      type: Number,
+      required: false,
+      min: 0,
+    },
+    totalPendingAmount: {
+      type: Number,
+      required: false,
+      min: 0,
+    },
     paymentMethod: {
       type: String,
       required: false,
       trim: true,
+    },
+    previousOrderId: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    coveredDueAmount: {
+      type: Number,
+      required: false,
+      min: 0,
     },
     status: {
       type: String,

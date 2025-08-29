@@ -23,4 +23,11 @@ router.put("/:id", auth(UserRole.admin, UserRole.salesman, UserRole.supplier), O
 // Delete order
 router.delete("/:id", auth(UserRole.admin, UserRole.salesman, UserRole.supplier), OrderControllers.deleteOrder);
 
+router.put(
+  "/update-status/:id",
+  auth(UserRole.admin, UserRole.salesman, UserRole.supplier),
+  OrderControllers.updateOrderStatus
+);
+
+
 export const OrderRoutes = router;

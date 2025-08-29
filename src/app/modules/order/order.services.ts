@@ -5,10 +5,99 @@ import Order from "./order.model";
 import { TOrder } from "./order.interface";
 
 // Create order
+// Create order
 const createOrder = async (payload: TOrder) => {
-  const result = await Order.create(payload);
-  return result;
+  // Find last order for this shop
+  const lastOrder = await Order.findOne({ shopId: payload.shopId }).sort({ createdAt: -1 });
+
+  let previousDue = 0;
+  let previousOrderId: string | null = null;
+
+  if (lastOrder && lastOrder.totalPendingAmount! > 0) {
+    previousDue = lastOrder.totalPendingAmount!;
+    previousOrderId = lastOrder._id.toString(); // track where due came from
+  }
+
+  const pendingAmount = payload.totalAmount! - payload.paidAmount!;
+  const totalPendingAmount = previousDue + pendingAmount;
+
+  // Create new order
+  const newOrder = await Order.create({
+    ...payload,
+    previousDue,
+    pendingAmount,
+    totalPendingAmount,
+    previousOrderId,
+  });
+
+  // Reset last order's totalPendingAmount = 0 (so only new order shows balance)
+  if (lastOrder) {
+    lastOrder.totalPendingAmount = 0;
+    await lastOrder.save();
+  }
+
+  return newOrder;
 };
+
+// Update order
+const updateOrder = async (id: string, payload: Partial<TOrder>) => {
+  const existing = await Order.findById(id);
+  if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Order not found");
+
+  const lastOrder = await Order.findOne({ shopId: existing.shopId }).sort({ createdAt: -1 });
+  if (!lastOrder || lastOrder._id.toString() !== existing._id.toString()) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Only latest order can be updated");
+  }
+
+  // Calculate total payment so far including new payment
+  const newPaidAmount = payload.paidAmount ?? 0;
+  const alreadyPaid = existing.paidAmount ?? 0;
+  const totalPaid = alreadyPaid + newPaidAmount;
+
+  const totalPending = (existing.previousDue || 0) + existing.totalAmount!;
+  const remaining = Math.max(0, totalPending - totalPaid);
+
+  const pendingAmount = Math.min(existing.totalAmount!, remaining);
+  const previousDue = Math.max(0, remaining - pendingAmount);
+
+  // ✅ Always clear all older orders' pendingAmounts
+  await Order.updateMany(
+    { shopId: existing.shopId, createdAt: { $lt: existing.createdAt } },
+    { $set: { pendingAmount: 0 } }
+  );
+
+  // ✅ Track only the last order id if dues are still carried
+  let previousOrderId = existing.previousOrderId ?? null;
+  if (previousDue > 0 && !previousOrderId) {
+    const prevOrder = await Order.findOne({
+      shopId: existing.shopId,
+      createdAt: { $lt: existing.createdAt },
+    }).sort({ createdAt: -1 });
+
+    if (prevOrder) {
+      previousOrderId = prevOrder._id.toString();
+    }
+  }
+
+  // ✅ Update current order
+  const updatedOrder = await Order.findByIdAndUpdate(
+    id,
+    {
+      ...payload,
+      paidAmount: totalPaid, // accumulate payments
+      pendingAmount,
+      previousDue,
+      totalPendingAmount: previousDue + pendingAmount,
+      previousOrderId,
+    },
+    { new: true, runValidators: true }
+  );
+
+  return updatedOrder;
+};
+
+
+
 
 // Get all orders with optional filters (keyword can search shopName)
 const getAllOrders = async (
@@ -50,41 +139,21 @@ const getOrdersByShopId = async (shopId: string) => {
   return orders;
 };
 
-// Update order
-const updateOrder = async (id: string, payload: Partial<TOrder>) => {
-  const existing = await Order.findById(id);
-  if (!existing) {
+const updateOrderStatus = async (id: string, status: string) => {
+  const result = await Order.findByIdAndUpdate(
+    id,
+    { status }, // assumes your Order model has a `status` field
+    { new: true } // return the updated document
+  );
+
+  if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, "Order not found");
   }
 
-  // Merge products if new products are provided
-  let updatedProducts = existing.products;
-
-  if (payload.products && payload.products.length > 0) {
-    // Option 1: append new products
-    updatedProducts = [...existing.products, ...payload.products];
-
-    // Optional: merge by productId to avoid duplicates
-    const map = new Map<string, (typeof updatedProducts)[0]>();
-    updatedProducts.forEach((p) => map.set(p.productId.toString(), p));
-    updatedProducts = Array.from(map.values());
-  }
-
-  // Merge payload without replacing products entirely
-  const updatePayload: Partial<TOrder> = {
-    ...payload,
-    products: updatedProducts,
-  };
-
-  const result = await Order.findByIdAndUpdate(id, updatePayload, {
-    new: true,
-    runValidators: true,
-  })
-    .populate("products.productId")
-    .populate("shopId");
-
   return result;
 };
+
+
 
 // Delete order
 const deleteOrder = async (id: string) => {
@@ -100,6 +169,7 @@ export const OrderServices = {
   getAllOrders,
   getSingleOrderById,
   updateOrder,
+  updateOrderStatus,
   deleteOrder,
   getOrdersByShopId,
 };
