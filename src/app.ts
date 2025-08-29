@@ -15,7 +15,7 @@ app.use(express.json());
 
 // app.use(express.static("./uploads"));
 // Middleware for handling CORS with credentials
-app.use(cors({ origin: ['https://vedic-app-dashboard.vercel.app', 'https://arya-kalyan-foundation.vercel.app', 'http://localhost:5173',], credentials: true }));
+app.use(cors({ origin: ['https://good-king-billing.vercel.app', 'http://localhost:5173',], credentials: true }));
 // app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
 
 // Root route
