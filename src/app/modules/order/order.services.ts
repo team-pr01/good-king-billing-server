@@ -3,19 +3,21 @@ import httpStatus from "http-status";
 import AppError from "../../errors/AppError";
 import Order from "./order.model";
 import { TOrder } from "./order.interface";
+import Product from "../products/product.model";
 
-// Create order
 // Create order
 const createOrder = async (payload: TOrder) => {
   // Find last order for this shop
-  const lastOrder = await Order.findOne({ shopId: payload.shopId }).sort({ createdAt: -1 });
+  const lastOrder = await Order.findOne({ shopId: payload.shopId }).sort({
+    createdAt: -1,
+  });
 
   let previousDue = 0;
   let previousOrderId: string | null = null;
 
   if (lastOrder && lastOrder.totalPendingAmount! > 0) {
     previousDue = lastOrder.totalPendingAmount!;
-    previousOrderId = lastOrder._id.toString(); // track where due came from
+    previousOrderId = lastOrder._id.toString();
   }
 
   const pendingAmount = payload.totalAmount! - payload.paidAmount!;
@@ -30,23 +32,35 @@ const createOrder = async (payload: TOrder) => {
     previousOrderId,
   });
 
-  // Reset last order's totalPendingAmount = 0 (so only new order shows balance)
   if (lastOrder) {
     lastOrder.totalPendingAmount = 0;
     await lastOrder.save();
   }
 
+  // Decrease product quantities in DB
+  if (payload.products && payload.products.length > 0) {
+    for (const item of payload.products) {
+      await Product.findByIdAndUpdate(item.productId, {
+        $inc: { availableStock: -item.quantity },
+      });
+    }
+  }
+
   return newOrder;
 };
-
 // Update order
 const updateOrder = async (id: string, payload: Partial<TOrder>) => {
   const existing = await Order.findById(id);
   if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Order not found");
 
-  const lastOrder = await Order.findOne({ shopId: existing.shopId }).sort({ createdAt: -1 });
+  const lastOrder = await Order.findOne({ shopId: existing.shopId }).sort({
+    createdAt: -1,
+  });
   if (!lastOrder || lastOrder._id.toString() !== existing._id.toString()) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Only latest order can be updated");
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Only latest order can be updated"
+    );
   }
 
   // Calculate total payment so far including new payment
@@ -96,9 +110,6 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
   return updatedOrder;
 };
 
-
-
-
 // Get all orders with optional filters (keyword can search shopName)
 const getAllOrders = async (
   keyword?: string,
@@ -126,6 +137,7 @@ const getAllOrders = async (
 // Get single order by ID
 const getSingleOrderById = async (id: string) => {
   const result = await Order.findById(id)
+    .populate("products.productId")
     .populate("shopId");
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, "Order not found");
@@ -151,8 +163,6 @@ const updateOrderStatus = async (id: string, status: string) => {
 
   return result;
 };
-
-
 
 // Delete order
 const deleteOrder = async (id: string) => {

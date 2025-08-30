@@ -17,16 +17,18 @@ exports.OrderServices = void 0;
 const http_status_1 = __importDefault(require("http-status"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const order_model_1 = __importDefault(require("./order.model"));
-// Create order
+const product_model_1 = __importDefault(require("../products/product.model"));
 // Create order
 const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     // Find last order for this shop
-    const lastOrder = yield order_model_1.default.findOne({ shopId: payload.shopId }).sort({ createdAt: -1 });
+    const lastOrder = yield order_model_1.default.findOne({ shopId: payload.shopId }).sort({
+        createdAt: -1,
+    });
     let previousDue = 0;
     let previousOrderId = null;
     if (lastOrder && lastOrder.totalPendingAmount > 0) {
         previousDue = lastOrder.totalPendingAmount;
-        previousOrderId = lastOrder._id.toString(); // track where due came from
+        previousOrderId = lastOrder._id.toString();
     }
     const pendingAmount = payload.totalAmount - payload.paidAmount;
     const totalPendingAmount = previousDue + pendingAmount;
@@ -35,10 +37,17 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
         pendingAmount,
         totalPendingAmount,
         previousOrderId }));
-    // Reset last order's totalPendingAmount = 0 (so only new order shows balance)
     if (lastOrder) {
         lastOrder.totalPendingAmount = 0;
         yield lastOrder.save();
+    }
+    // Decrease product quantities in DB
+    if (payload.products && payload.products.length > 0) {
+        for (const item of payload.products) {
+            yield product_model_1.default.findByIdAndUpdate(item.productId, {
+                $inc: { availableStock: -item.quantity },
+            });
+        }
     }
     return newOrder;
 });
@@ -48,7 +57,9 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
     const existing = yield order_model_1.default.findById(id);
     if (!existing)
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, "Order not found");
-    const lastOrder = yield order_model_1.default.findOne({ shopId: existing.shopId }).sort({ createdAt: -1 });
+    const lastOrder = yield order_model_1.default.findOne({ shopId: existing.shopId }).sort({
+        createdAt: -1,
+    });
     if (!lastOrder || lastOrder._id.toString() !== existing._id.toString()) {
         throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "Only latest order can be updated");
     }
