@@ -23,6 +23,13 @@ const createOrder = async (payload: TOrder) => {
   const pendingAmount = payload.totalAmount! - payload.paidAmount!;
   const totalPendingAmount = previousDue + pendingAmount;
 
+  // 👉 Generate custom orderId
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // 01-12
+  const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 random digits
+  const customOrderId = `MH20${year}${month}${randomDigits}`;
+
   // Create new order
   const newOrder = await Order.create({
     ...payload,
@@ -30,6 +37,7 @@ const createOrder = async (payload: TOrder) => {
     pendingAmount,
     totalPendingAmount,
     previousOrderId,
+    orderId: customOrderId,
   });
 
   if (lastOrder) {

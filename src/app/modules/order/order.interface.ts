@@ -9,6 +9,7 @@ export type TOrderProduct = {
 };
 
 export type TOrder = {
+  orderId? : string;
   shopId: mongoose.Schema.Types.ObjectId;
   shopName: string;
   area : string;

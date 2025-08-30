@@ -53,6 +53,12 @@ const OrderProductSchema = new mongoose_1.Schema({
     },
 }, { _id: false });
 const OrderSchema = new mongoose_1.Schema({
+    orderId: {
+        type: String,
+        required: false,
+        default: null,
+        trim: true,
+    },
     shopId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "Client",

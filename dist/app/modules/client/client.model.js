@@ -71,7 +71,8 @@ const ClientSchema = new mongoose_1.Schema({
     },
     pinCode: {
         type: String,
-        required: true,
+        required: false,
+        default: null,
         trim: true,
     },
 }, {

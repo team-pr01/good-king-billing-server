@@ -32,11 +32,17 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
     }
     const pendingAmount = payload.totalAmount - payload.paidAmount;
     const totalPendingAmount = previousDue + pendingAmount;
+    // 👉 Generate custom orderId
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // 01-12
+    const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 random digits
+    const customOrderId = `MH20${year}${month}${randomDigits}`;
     // Create new order
     const newOrder = yield order_model_1.default.create(Object.assign(Object.assign({}, payload), { previousDue,
         pendingAmount,
         totalPendingAmount,
-        previousOrderId }));
+        previousOrderId, orderId: customOrderId }));
     if (lastOrder) {
         lastOrder.totalPendingAmount = 0;
         yield lastOrder.save();

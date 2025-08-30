@@ -11,7 +11,7 @@ export type TClient = {
   city : string;
   state : string;
   district : string;
-  pinCode : string;
+  pinCode? : string;
   createdAt?: Date;
   updatedAt?: Date;
 };
