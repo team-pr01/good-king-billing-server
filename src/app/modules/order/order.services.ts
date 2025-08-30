@@ -126,7 +126,6 @@ const getAllOrders = async (
 // Get single order by ID
 const getSingleOrderById = async (id: string) => {
   const result = await Order.findById(id)
-    .populate("products.productId")
     .populate("shopId");
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, "Order not found");
