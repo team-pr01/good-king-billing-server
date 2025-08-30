@@ -91,7 +91,7 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
     return updatedOrder;
 });
 // Get all orders with optional filters (keyword can search shopName)
-const getAllOrders = (keyword, shopId, status) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllOrders = (keyword, shopId, status, area) => __awaiter(void 0, void 0, void 0, function* () {
     const query = {};
     if (keyword) {
         query.shopName = { $regex: keyword, $options: "i" };
@@ -101,6 +101,9 @@ const getAllOrders = (keyword, shopId, status) => __awaiter(void 0, void 0, void
     }
     if (status) {
         query.status = status;
+    }
+    if (area) {
+        query.area = area;
     }
     const result = yield order_model_1.default.find(query);
     return result;

@@ -45,6 +45,11 @@ const OrderSchema = new Schema<TOrder>(
       required: true,
       trim: true,
     },
+    area: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     totalAmount: {
       type: Number,
       required: false,

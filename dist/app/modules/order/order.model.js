@@ -63,6 +63,11 @@ const OrderSchema = new mongoose_1.Schema({
         required: true,
         trim: true,
     },
+    area: {
+        type: String,
+        required: true,
+        trim: true,
+    },
     totalAmount: {
         type: Number,
         required: false,

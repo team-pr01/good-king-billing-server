@@ -114,7 +114,8 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
 const getAllOrders = async (
   keyword?: string,
   shopId?: string,
-  status?: string
+  status?: string,
+  area?: string
 ) => {
   const query: any = {};
 
@@ -128,6 +129,10 @@ const getAllOrders = async (
 
   if (status) {
     query.status = status;
+  }
+
+  if (area) {
+    query.area = area;
   }
 
   const result = await Order.find(query);

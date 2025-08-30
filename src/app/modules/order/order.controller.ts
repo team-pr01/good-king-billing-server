@@ -16,11 +16,12 @@ const createOrder = catchAsync(async (req, res) => {
 
 // Get all orders with optional search
 const getAllOrders = catchAsync(async (req, res) => {
-  const { keyword, shopId, status } = req.query;
+  const { keyword, shopId, status, area } = req.query;
   const result = await OrderServices.getAllOrders(
     keyword as string,
     shopId as string,
-    status as string
+    status as string,
+    area as string
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -68,7 +69,6 @@ const updateOrder = catchAsync(async (req, res) => {
 
 const updateOrderStatus = catchAsync(async (req, res) => {
   const { status } = req.body;
-  console.log(status);
   const result = await OrderServices.updateOrderStatus(req.params.id, status);
 
   sendResponse(res, {

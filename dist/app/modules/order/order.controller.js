@@ -29,8 +29,8 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 // Get all orders with optional search
 const getAllOrders = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { keyword, shopId, status } = req.query;
-    const result = yield order_services_1.OrderServices.getAllOrders(keyword, shopId, status);
+    const { keyword, shopId, status, area } = req.query;
+    const result = yield order_services_1.OrderServices.getAllOrders(keyword, shopId, status, area);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -71,7 +71,6 @@ const updateOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 const updateOrderStatus = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { status } = req.body;
-    console.log(status);
     const result = yield order_services_1.OrderServices.updateOrderStatus(req.params.id, status);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
