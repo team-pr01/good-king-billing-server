@@ -6,6 +6,10 @@ import httpStatus from "http-status";
 
 // Add client
 const addClient = async (payload: TClient) => {
+  const isClientExists = await Client.findOne({ email: payload.email });
+  if (isClientExists) {
+    throw new AppError(httpStatus.CONFLICT, "Client already exists.");
+  }
   const result = await Client.create(payload);
   return result;
 };

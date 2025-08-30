@@ -19,6 +19,10 @@ const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
 // Add client
 const addClient = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const isClientExists = yield client_model_1.default.findOne({ email: payload.email });
+    if (isClientExists) {
+        throw new AppError_1.default(http_status_1.default.CONFLICT, "Client already exists.");
+    }
     const result = yield client_model_1.default.create(payload);
     return result;
 });
