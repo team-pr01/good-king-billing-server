@@ -17,7 +17,7 @@ const createOrder = async (payload: TOrder) => {
 
   if (lastOrder && lastOrder.totalPendingAmount! > 0) {
     previousDue = lastOrder.totalPendingAmount!;
-    previousOrderId = lastOrder._id.toString();
+    previousOrderId = lastOrder?.orderId!.toString();
   }
 
   const pendingAmount = payload.totalAmount! - payload.paidAmount!;
@@ -59,6 +59,7 @@ const createOrder = async (payload: TOrder) => {
 // Update order
 const updateOrder = async (id: string, payload: Partial<TOrder>) => {
   const existing = await Order.findById(id);
+  console.log(existing);
   if (!existing) throw new AppError(httpStatus.NOT_FOUND, "Order not found");
 
   const lastOrder = await Order.findOne({ shopId: existing.shopId }).sort({
@@ -95,11 +96,12 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
       shopId: existing.shopId,
       createdAt: { $lt: existing.createdAt },
     }).sort({ createdAt: -1 });
-
+    
     if (prevOrder) {
-      previousOrderId = prevOrder._id.toString();
+      previousOrderId = prevOrder?.orderId!.toString();
     }
   }
+  console.log(previousOrderId, "hi");
 
   // ✅ Update current order
   const updatedOrder = await Order.findByIdAndUpdate(
