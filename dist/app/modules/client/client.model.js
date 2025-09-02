@@ -14,7 +14,6 @@ const ClientSchema = new mongoose_1.Schema({
         trim: true,
         lowercase: true,
         default: null,
-        sparse: true,
     },
     phoneNumber: {
         type: String,
@@ -78,5 +77,7 @@ const ClientSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
+// Create sparse unique index for email
+ClientSchema.index({ email: 1 }, { unique: true, sparse: true });
 const Client = (0, mongoose_1.model)("Client", ClientSchema);
 exports.default = Client;

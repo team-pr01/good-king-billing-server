@@ -15,7 +15,6 @@ const ClientSchema = new Schema<TClient>(
       trim: true,
       lowercase: true,
       default: null,
-      sparse: true,
     },
     phoneNumber: {
       type: String,
@@ -81,6 +80,9 @@ const ClientSchema = new Schema<TClient>(
     timestamps: true,
   }
 );
+
+// Create sparse unique index for email
+ClientSchema.index({ email: 1 }, { unique: true, sparse: true });
 
 const Client = model<TClient>("Client", ClientSchema);
 
