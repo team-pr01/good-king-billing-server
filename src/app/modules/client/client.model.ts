@@ -16,6 +16,7 @@ const ClientSchema = new Schema<TClient>(
       lowercase: true,
       unique: true,
       default: null,
+      sparse: true,
     },
     phoneNumber: {
       type: String,

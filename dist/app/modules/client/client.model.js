@@ -15,6 +15,7 @@ const ClientSchema = new mongoose_1.Schema({
         lowercase: true,
         unique: true,
         default: null,
+        sparse: true,
     },
     phoneNumber: {
         type: String,
