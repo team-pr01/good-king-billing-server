@@ -6,7 +6,7 @@ import httpStatus from "http-status";
 
 // Add client
 const addClient = async (payload: TClient) => {
-  const isClientExists = await Client.findOne({ email: payload.email });
+  const isClientExists = await Client.findOne({ phoneNumber: payload.phoneNumber });
   if (isClientExists) {
     throw new AppError(httpStatus.CONFLICT, "Client already exists.");
   }
