@@ -21,7 +21,7 @@ const http_status_1 = __importDefault(require("http-status"));
 const addClient = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const isClientExists = yield client_model_1.default.findOne({ phoneNumber: payload.phoneNumber });
     if (isClientExists) {
-        throw new AppError_1.default(http_status_1.default.CONFLICT, "Client already exists.");
+        throw new AppError_1.default(http_status_1.default.CONFLICT, "Client already exists with this phone number.");
     }
     const result = yield client_model_1.default.create(payload);
     return result;
