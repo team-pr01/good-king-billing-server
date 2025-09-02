@@ -13,7 +13,6 @@ const ClientSchema = new mongoose_1.Schema({
         required: false,
         trim: true,
         lowercase: true,
-        unique: true,
         default: null,
         sparse: true,
     },

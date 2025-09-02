@@ -14,7 +14,6 @@ const ClientSchema = new Schema<TClient>(
       required: false,
       trim: true,
       lowercase: true,
-      unique: true,
       default: null,
       sparse: true,
     },
