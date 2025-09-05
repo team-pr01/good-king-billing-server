@@ -1,6 +1,6 @@
 export type TClient = {
   name: string;
-  email?: string;
+  emailId?: string;
   phoneNumber: string;
   shopName: string;
   gstNumber?: string;

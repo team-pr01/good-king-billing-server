@@ -8,11 +8,10 @@ const ClientSchema = new mongoose_1.Schema({
         trim: true,
         maxlength: 100,
     },
-    email: {
+    emailId: {
         type: String,
         required: false,
-        trim: true,
-        lowercase: true,
+        unique: false,
         default: null,
     },
     phoneNumber: {

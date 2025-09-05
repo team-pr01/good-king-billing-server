@@ -9,11 +9,10 @@ const ClientSchema = new Schema<TClient>(
       trim: true,
       maxlength: 100,
     },
-    email: {
+    emailId: {
       type: String,
       required: false,
-      trim: true,
-      lowercase: true,
+      unique: false,
       default: null,
     },
     phoneNumber: {

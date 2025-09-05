@@ -61,7 +61,6 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
 const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const existing = yield order_model_1.default.findById(id);
-    console.log(existing);
     if (!existing)
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, "Order not found");
     const lastOrder = yield order_model_1.default.findOne({ shopId: existing.shopId }).sort({
@@ -91,7 +90,6 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
             previousOrderId = prevOrder === null || prevOrder === void 0 ? void 0 : prevOrder.orderId.toString();
         }
     }
-    console.log(previousOrderId, "hi");
     // ✅ Update current order
     const updatedOrder = yield order_model_1.default.findByIdAndUpdate(id, Object.assign(Object.assign({}, payload), { paidAmount: totalPaid, // accumulate payments
         pendingAmount,
