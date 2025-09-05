@@ -81,9 +81,6 @@ const ClientSchema = new Schema<TClient>(
   }
 );
 
-// Create sparse unique index for email
-ClientSchema.index({ email: 1 }, { unique: true, sparse: true });
-
 const Client = model<TClient>("Client", ClientSchema);
 
 export default Client;
