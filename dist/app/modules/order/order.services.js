@@ -59,7 +59,7 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
 });
 // Update order
 const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     const existing = yield order_model_1.default.findById(id);
     if (!existing)
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, "Order not found");
@@ -75,7 +75,7 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
     let installment = newPaidAmount;
     // Pending values from DB
     let previousDue = (_c = existing.previousDue) !== null && _c !== void 0 ? _c : 0;
-    let pendingAmount = (_d = existing.pendingAmount) !== null && _d !== void 0 ? _d : existing.totalAmount;
+    let pendingAmount = (_e = (_d = payload.pendingAmount) !== null && _d !== void 0 ? _d : existing.pendingAmount) !== null && _e !== void 0 ? _e : existing.totalAmount;
     // First apply to previous dues
     if (installment > 0 && previousDue > 0) {
         const appliedToPrev = Math.min(installment, previousDue);
@@ -93,7 +93,7 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
     // ✅ Always clear all older orders' pendingAmounts
     yield order_model_1.default.updateMany({ shopId: existing.shopId, createdAt: { $lt: existing.createdAt } }, { $set: { pendingAmount: 0 } });
     // ✅ Track only the last order id if dues are still carried
-    let previousOrderId = (_e = existing.previousOrderId) !== null && _e !== void 0 ? _e : null;
+    let previousOrderId = (_f = existing.previousOrderId) !== null && _f !== void 0 ? _f : null;
     if (previousDue > 0 && !previousOrderId) {
         const prevOrder = yield order_model_1.default.findOne({
             shopId: existing.shopId,
@@ -104,7 +104,7 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
         }
     }
     // ✅ Update current order
-    const updatedOrder = yield order_model_1.default.findByIdAndUpdate(id, Object.assign(Object.assign({}, payload), { paidAmount: totalPaid, pendingAmount,
+    const updatedOrder = yield order_model_1.default.findByIdAndUpdate(id, Object.assign(Object.assign({}, payload), { totalAmount: payload === null || payload === void 0 ? void 0 : payload.totalAmount, paidAmount: totalPaid, pendingAmount,
         previousDue, totalPendingAmount: previousDue + pendingAmount, previousOrderId }), { new: true, runValidators: true });
     return updatedOrder;
 });

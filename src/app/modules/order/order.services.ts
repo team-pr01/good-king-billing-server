@@ -79,7 +79,9 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
 
   // Pending values from DB
   let previousDue = existing.previousDue ?? 0;
-  let pendingAmount = existing.pendingAmount ?? existing.totalAmount!;
+ let pendingAmount = payload.pendingAmount ?? existing.pendingAmount ?? existing.totalAmount!;
+
+  
 
   // First apply to previous dues
   if (installment > 0 && previousDue > 0) {
@@ -122,6 +124,7 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
     id,
     {
       ...payload,
+       totalAmount: payload?.totalAmount,
       paidAmount: totalPaid,
       pendingAmount,
       previousDue,
