@@ -71,16 +71,32 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
     );
   }
 
-  // Calculate total payment so far including new payment
   const newPaidAmount = payload.paidAmount ?? 0;
   const alreadyPaid = existing.paidAmount ?? 0;
+
+  // New installment amount (this transaction only)
+  let installment = newPaidAmount;
+
+  // Pending values from DB
+  let previousDue = existing.previousDue ?? 0;
+  let pendingAmount = existing.pendingAmount ?? existing.totalAmount!;
+
+  // First apply to previous dues
+  if (installment > 0 && previousDue > 0) {
+    const appliedToPrev = Math.min(installment, previousDue);
+    previousDue -= appliedToPrev;
+    installment -= appliedToPrev;
+  }
+
+  // Then apply to this order’s pending
+  if (installment > 0 && pendingAmount > 0) {
+    const appliedToThis = Math.min(installment, pendingAmount);
+    pendingAmount -= appliedToThis;
+    installment -= appliedToThis;
+  }
+
+  // Total paid should be existing.paidAmount + newPaidAmount
   const totalPaid = alreadyPaid + newPaidAmount;
-
-  const totalPending = (existing.previousDue || 0) + existing.totalAmount!;
-  const remaining = Math.max(0, totalPending - totalPaid);
-
-  const pendingAmount = Math.min(existing.totalAmount!, remaining);
-  const previousDue = Math.max(0, remaining - pendingAmount);
 
   // ✅ Always clear all older orders' pendingAmounts
   await Order.updateMany(
@@ -95,7 +111,7 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
       shopId: existing.shopId,
       createdAt: { $lt: existing.createdAt },
     }).sort({ createdAt: -1 });
-    
+
     if (prevOrder) {
       previousOrderId = prevOrder?.orderId!.toString();
     }
@@ -106,7 +122,7 @@ const updateOrder = async (id: string, payload: Partial<TOrder>) => {
     id,
     {
       ...payload,
-      paidAmount: totalPaid, // accumulate payments
+      paidAmount: totalPaid,
       pendingAmount,
       previousDue,
       totalPendingAmount: previousDue + pendingAmount,

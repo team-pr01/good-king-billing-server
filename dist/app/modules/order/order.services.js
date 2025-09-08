@@ -59,7 +59,7 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
 });
 // Update order
 const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
     const existing = yield order_model_1.default.findById(id);
     if (!existing)
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, "Order not found");
@@ -69,18 +69,31 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
     if (!lastOrder || lastOrder._id.toString() !== existing._id.toString()) {
         throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "Only latest order can be updated");
     }
-    // Calculate total payment so far including new payment
     const newPaidAmount = (_a = payload.paidAmount) !== null && _a !== void 0 ? _a : 0;
     const alreadyPaid = (_b = existing.paidAmount) !== null && _b !== void 0 ? _b : 0;
+    // New installment amount (this transaction only)
+    let installment = newPaidAmount;
+    // Pending values from DB
+    let previousDue = (_c = existing.previousDue) !== null && _c !== void 0 ? _c : 0;
+    let pendingAmount = (_d = existing.pendingAmount) !== null && _d !== void 0 ? _d : existing.totalAmount;
+    // First apply to previous dues
+    if (installment > 0 && previousDue > 0) {
+        const appliedToPrev = Math.min(installment, previousDue);
+        previousDue -= appliedToPrev;
+        installment -= appliedToPrev;
+    }
+    // Then apply to this order’s pending
+    if (installment > 0 && pendingAmount > 0) {
+        const appliedToThis = Math.min(installment, pendingAmount);
+        pendingAmount -= appliedToThis;
+        installment -= appliedToThis;
+    }
+    // Total paid should be existing.paidAmount + newPaidAmount
     const totalPaid = alreadyPaid + newPaidAmount;
-    const totalPending = (existing.previousDue || 0) + existing.totalAmount;
-    const remaining = Math.max(0, totalPending - totalPaid);
-    const pendingAmount = Math.min(existing.totalAmount, remaining);
-    const previousDue = Math.max(0, remaining - pendingAmount);
     // ✅ Always clear all older orders' pendingAmounts
     yield order_model_1.default.updateMany({ shopId: existing.shopId, createdAt: { $lt: existing.createdAt } }, { $set: { pendingAmount: 0 } });
     // ✅ Track only the last order id if dues are still carried
-    let previousOrderId = (_c = existing.previousOrderId) !== null && _c !== void 0 ? _c : null;
+    let previousOrderId = (_e = existing.previousOrderId) !== null && _e !== void 0 ? _e : null;
     if (previousDue > 0 && !previousOrderId) {
         const prevOrder = yield order_model_1.default.findOne({
             shopId: existing.shopId,
@@ -91,8 +104,7 @@ const updateOrder = (id, payload) => __awaiter(void 0, void 0, void 0, function*
         }
     }
     // ✅ Update current order
-    const updatedOrder = yield order_model_1.default.findByIdAndUpdate(id, Object.assign(Object.assign({}, payload), { paidAmount: totalPaid, // accumulate payments
-        pendingAmount,
+    const updatedOrder = yield order_model_1.default.findByIdAndUpdate(id, Object.assign(Object.assign({}, payload), { paidAmount: totalPaid, pendingAmount,
         previousDue, totalPendingAmount: previousDue + pendingAmount, previousOrderId }), { new: true, runValidators: true });
     return updatedOrder;
 });
